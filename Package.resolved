@@ -2,15 +2,6 @@
   "originHash" : "b62826af765dc3de0f17e32675fde34d289431c2e1176c6f8c4b49c0efe7403f",
   "pins" : [
     {
-      "identity" : "conduit",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/christopherkarani/Conduit",
-      "state" : {
-        "revision" : "b7ccafa44c8bb19d0f74aeb45d9dbd05563a55c5",
-        "version" : "0.3.5"
-      }
-    },
-    {
       "identity" : "grdb.swift",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/groue/GRDB.swift.git",
@@ -51,8 +42,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-crypto.git",
       "state" : {
-        "revision" : "6f70fa9eab24c1fd982af18c281c4525d05e3095",
-        "version" : "4.2.0"
+        "revision" : "95ba0316a9b733e92bb6b071255ff46263bbe7dc",
+        "version" : "3.15.1"
       }
     },
     {
@@ -107,15 +98,6 @@
       "state" : {
         "revision" : "40d127f472e9073875566f0e9308c0302b89100a",
         "version" : "2.24.0"
-      }
-    },
-    {
-      "identity" : "wax",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/christopherkarani/Wax.git",
-      "state" : {
-        "revision" : "aeb28ac8e7386c42bb229d5a1d23aea245e5f7bb",
-        "version" : "0.1.7"
       }
     },
     {
