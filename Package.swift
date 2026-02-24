@@ -13,12 +13,29 @@ var dependencies: [Package.Dependency] = [
 
 if useLocalDeps {
     dependencies += [
-        .package(path: packageRoot.appendingPathComponent("../Conduit").path),
+        .package(
+            path: packageRoot.appendingPathComponent("../Conduit").path,
+            traits: [
+                .trait(name: "OpenAI"),
+                .trait(name: "OpenRouter"),
+                .trait(name: "Anthropic"),
+                .trait(name: "MLX"),
+            ]
+        ),
         .package(path: packageRoot.appendingPathComponent("../Wax").path),
     ]
 } else {
     dependencies += [
-        .package(url: "https://github.com/christopherkarani/Conduit", from: "0.3.1"),
+        .package(
+            url: "https://github.com/christopherkarani/Conduit",
+            from: "0.3.1",
+            traits: [
+                .trait(name: "OpenAI"),
+                .trait(name: "OpenRouter"),
+                .trait(name: "Anthropic"),
+                .trait(name: "MLX"),
+            ]
+        ),
         .package(url: "https://github.com/christopherkarani/Wax.git", from: "0.1.3"),
     ]
 }
