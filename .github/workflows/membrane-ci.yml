@@ -1,0 +1,92 @@
+name: Membrane CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: membrane-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  membrane-build-test:
+    name: Membrane Build/Test (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: true
+      matrix:
+        runner: [macos-14, macos-15]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift 6.2
+        uses: swift-actions/setup-swift@v3
+        with:
+          swift-version: "6.2"
+
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts/ci
+
+      - name: Cache Swift build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            Membrane/.build
+            Swarm/.build
+            ../Swarm/.build
+          key: ${{ runner.os }}-${{ matrix.runner }}-swift-6.2-membrane-${{ hashFiles('Membrane/Package.resolved', 'Swarm/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.runner }}-swift-6.2-membrane-
+
+      - name: Build (local deps)
+        run: |
+          set -euo pipefail
+          LOG_DIR="$(pwd)/artifacts/ci"
+          mkdir -p "${LOG_DIR}"
+          if [[ -d Membrane ]]; then
+            cd Membrane
+          fi
+          MEMBRANE_USE_LOCAL_DEPS=1 swift build 2>&1 | tee "${LOG_DIR}/membrane-build.log"
+
+      - name: Test (local deps)
+        run: |
+          set -euo pipefail
+          LOG_DIR="$(pwd)/artifacts/ci"
+          mkdir -p "${LOG_DIR}"
+          if [[ -d Membrane ]]; then
+            cd Membrane
+          fi
+          MEMBRANE_USE_LOCAL_DEPS=1 swift test 2>&1 | tee "${LOG_DIR}/membrane-test.log"
+
+      - name: Conformance suite
+        run: |
+          set -euo pipefail
+          LOG_DIR="$(pwd)/artifacts/ci"
+          mkdir -p "${LOG_DIR}"
+          if [[ -d Membrane ]]; then
+            cd Membrane
+          fi
+          MEMBRANE_USE_LOCAL_DEPS=1 swift test --filter MembraneConformance 2>&1 | tee "${LOG_DIR}/membrane-conformance.log"
+
+      - name: Benchmark suite
+        run: |
+          set -euo pipefail
+          LOG_DIR="$(pwd)/artifacts/ci"
+          mkdir -p "${LOG_DIR}"
+          if [[ -d Membrane ]]; then
+            cd Membrane
+          fi
+          MEMBRANE_USE_LOCAL_DEPS=1 swift test --filter MembraneBenchmarks 2>&1 | tee "${LOG_DIR}/membrane-benchmarks.log"
+
+      - name: Upload CI artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: membrane-ci-${{ matrix.runner }}
+          path: artifacts/ci
+          if-no-files-found: warn

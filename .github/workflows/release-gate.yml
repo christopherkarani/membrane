@@ -1,0 +1,82 @@
+name: Release Gate
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "Release version (for example v1.0.3)"
+        required: true
+        type: string
+      release_commit:
+        description: "Commit SHA to release"
+        required: true
+        type: string
+      release_owner:
+        description: "Release owner"
+        required: true
+        type: string
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required release artifacts exist
+        run: |
+          set -euo pipefail
+          check_path() {
+            local primary="$1"
+            local fallback="$2"
+            if [[ -f "${primary}" ]]; then
+              return 0
+            fi
+            if [[ -f "${fallback}" ]]; then
+              return 0
+            fi
+            echo "Missing required file: ${primary} (or ${fallback})" >&2
+            return 1
+          }
+
+          check_path "docs/release/release-checklist.md" "../docs/release/release-checklist.md"
+          check_path "docs/release/versioning-and-tagging.md" "../docs/release/versioning-and-tagging.md"
+          check_path "docs/release/changelog-template.md" "../docs/release/changelog-template.md"
+          check_path "docs/ops/rollback-runbook.md" "../docs/ops/rollback-runbook.md"
+          check_path "docs/ops/canary-policy.md" "../docs/ops/canary-policy.md"
+
+      - name: Build release gate artifact
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/release
+          now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          {
+            echo "# Release Gate Artifact"
+            echo
+            echo "- Generated at: ${now}"
+            echo "- Release version: ${{ inputs.release_version }}"
+            echo "- Release commit: ${{ inputs.release_commit }}"
+            echo "- Release owner: ${{ inputs.release_owner }}"
+            echo
+            echo "## Mandatory Checks"
+            echo "- [ ] Membrane CI green"
+            echo "- [ ] Swarm integration CI green"
+            echo "- [ ] Non-local deps CI green"
+            echo "- [ ] Security CI green"
+            echo "- [ ] Soak gate pass"
+            echo "- [ ] Canary stage progression pass"
+            echo "- [ ] Rollback target tag validated"
+            echo
+            echo "## Sign-offs"
+            echo "- [ ] Runtime owner"
+            echo "- [ ] Security owner"
+            echo "- [ ] Release manager"
+          } > "artifacts/release/release-gate-${{ inputs.release_version }}.md"
+
+      - name: Upload release gate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-gate-${{ inputs.release_version }}
+          path: artifacts/release
+          if-no-files-found: error

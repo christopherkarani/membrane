@@ -1,0 +1,59 @@
+name: Security CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: security-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift 6.2
+        uses: swift-actions/setup-swift@v3
+        with:
+          swift-version: "6.2"
+          skip-verify-signature: true
+
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts/security
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          curl -sSfL https://raw.githubusercontent.com/gitleaks/gitleaks/master/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Install trivy
+        run: |
+          set -euo pipefail
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run security automation
+        run: |
+          set -euo pipefail
+          script_path="scripts/ci/security_scan.sh"
+          if [[ ! -x "${script_path}" ]]; then
+            script_path="../scripts/ci/security_scan.sh"
+          fi
+          if [[ ! -x "${script_path}" ]]; then
+            echo "security_scan.sh not found" >&2
+            exit 1
+          fi
+          "${script_path}" --strict
+
+      - name: Upload security artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-ci
+          path: artifacts/security
+          if-no-files-found: warn

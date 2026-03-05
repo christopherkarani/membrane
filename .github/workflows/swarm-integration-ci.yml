@@ -1,0 +1,82 @@
+name: Swarm Integration CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: swarm-integration-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  swarm-integration:
+    name: Swarm Integration (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: true
+      matrix:
+        runner: [macos-14, macos-15]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Swift 6.2
+        uses: swift-actions/setup-swift@v3
+        with:
+          swift-version: "6.2"
+
+      - name: Prepare artifact directory
+        run: mkdir -p artifacts/ci
+
+      - name: Cache Swift build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            .build
+            Swarm/.build
+            Membrane/.build
+            ../Swarm/.build
+          key: ${{ runner.os }}-${{ matrix.runner }}-swift-6.2-swarm-int-${{ hashFiles('Swarm/Package.resolved', 'Membrane/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.runner }}-swift-6.2-swarm-int-
+
+      - name: Membrane integration tests
+        run: |
+          set -euo pipefail
+          LOG_DIR="$(pwd)/artifacts/ci"
+          mkdir -p "${LOG_DIR}"
+          if [[ -d Swarm ]]; then
+            cd Swarm
+          elif [[ -d ../Swarm ]]; then
+            cd ../Swarm
+          else
+            echo "Swarm directory not found for integration tests" >&2
+            exit 1
+          fi
+          SWARM_USE_LOCAL_DEPS=1 swift test --filter MembraneIntegrationTests 2>&1 | tee "${LOG_DIR}/swarm-membrane-integration.log"
+
+      - name: Membrane checkpoint tests
+        run: |
+          set -euo pipefail
+          LOG_DIR="$(pwd)/artifacts/ci"
+          mkdir -p "${LOG_DIR}"
+          if [[ -d Swarm ]]; then
+            cd Swarm
+          elif [[ -d ../Swarm ]]; then
+            cd ../Swarm
+          else
+            echo "Swarm directory not found for checkpoint tests" >&2
+            exit 1
+          fi
+          SWARM_USE_LOCAL_DEPS=1 swift test --filter MembraneHiveCheckpointTests 2>&1 | tee "${LOG_DIR}/swarm-membrane-checkpoint.log"
+
+      - name: Upload integration artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-integration-ci-${{ matrix.runner }}
+          path: artifacts/ci
+          if-no-files-found: warn
