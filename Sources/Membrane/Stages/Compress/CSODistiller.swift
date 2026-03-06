@@ -58,7 +58,7 @@ public actor CSODistiller: CompressStage {
         )
     }
 
-    public func distill(turns: [String], existing: ContextStateObject? = nil) -> ContextStateObject {
+    func distill(turns: [String], existing: ContextStateObject? = nil) -> ContextStateObject {
         var cso = existing ?? ContextStateObject()
 
         for rawTurn in turns {

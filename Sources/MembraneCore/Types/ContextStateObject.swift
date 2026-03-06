@@ -71,7 +71,7 @@ public struct ContextStateObject: Sendable, Codable {
         max(formatted().count / 4, 1)
     }
 
-    public mutating func trimBounds() {
+    package mutating func trimBounds() {
         if decisions.count > 20 {
             decisions = Array(decisions.suffix(20))
         }

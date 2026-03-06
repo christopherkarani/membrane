@@ -161,7 +161,7 @@ public actor WaxStorageBackend: PointerStore {
         )
     }
 
-    public func frameID(forPointerID pointerID: String) async throws -> UInt64? {
+    private func frameID(forPointerID pointerID: String) async throws -> UInt64? {
         if let frameID = pointerFrameIDByID[pointerID] {
             return frameID
         }

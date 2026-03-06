@@ -4,7 +4,7 @@ import Testing
 
 @Suite struct MembraneHiveBootstrapTests {
     @Test func moduleImports() {
-        #expect(MembraneHiveMarker.moduleName == "MembraneHive")
+        #expect(MembraneCheckpointAdapter.self is Any.Type)
     }
 
     @Test func checkpointEncodingIsByteStableAcrossEncodes() throws {

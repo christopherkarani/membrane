@@ -31,7 +31,7 @@ import Testing
     @Test func preservesLoadedToolNamesAcrossTurns() {
         let loader = JITToolLoader(jitMinToolCount: 10)
         let tools = (0..<20).map { ToolManifest(name: "tool_\($0)", description: "Tool \($0)") }
-        let existing = ToolPlan.normalizedJIT(index: [], loadedToolNames: ["tool_9", "tool_2"])
+        let existing = ToolPlan.jit(normalized: [], loaded: ["tool_9", "tool_2"])
 
         let plan = loader.plan(tools: tools, existingPlan: existing)
 

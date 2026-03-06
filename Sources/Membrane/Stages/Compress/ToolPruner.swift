@@ -36,6 +36,6 @@ public struct ToolPruner: Sendable {
             .prefix(max(0, keepTopK))
             .map(\.name)
 
-        return ToolPlan.normalizedAllowList(Array(kept))
+        return ToolPlan.allowList(normalized: Array(kept))
     }
 }

@@ -115,7 +115,7 @@ actor TraceEmitStage: EmitStage {
         let pipeline = MembranePipeline(
             budget: ContextBudget(totalTokens: 4096, profile: .foundationModels4K),
             intake: TraceIntakeStage(trace: trace),
-            budgetStage: TraceBudgetStage(trace: trace),
+            allocator: TraceBudgetStage(trace: trace),
             compress: TraceCompressStage(trace: trace),
             page: TracePageStage(trace: trace),
             emit: TraceEmitStage(trace: trace)
@@ -128,9 +128,9 @@ actor TraceEmitStage: EmitStage {
 
     @Test func foundationModelsProfileSkipsPageAndEmit() async throws {
         let trace = StageTrace()
-        let pipeline = MembranePipeline.foundationModels(
+        let pipeline = MembranePipeline.foundationModel(
             intake: TraceIntakeStage(trace: trace),
-            budgetStage: TraceBudgetStage(trace: trace),
+            allocator: TraceBudgetStage(trace: trace),
             compress: TraceCompressStage(trace: trace),
             page: TracePageStage(trace: trace),
             emit: TraceEmitStage(trace: trace)
@@ -146,7 +146,7 @@ actor TraceEmitStage: EmitStage {
         let pipeline = MembranePipeline.openModel(
             budget: ContextBudget(totalTokens: 8192, profile: .openModel8K),
             intake: TraceIntakeStage(trace: trace),
-            budgetStage: TraceBudgetStage(trace: trace),
+            allocator: TraceBudgetStage(trace: trace),
             compress: TraceCompressStage(trace: trace),
             page: TracePageStage(trace: trace),
             emit: TraceEmitStage(trace: trace)
@@ -163,7 +163,7 @@ actor TraceEmitStage: EmitStage {
             let pipeline = MembranePipeline.openModel(
                 budget: ContextBudget(totalTokens: 8192, profile: .openModel8K),
                 intake: TraceIntakeStage(trace: trace),
-                budgetStage: TraceBudgetStage(trace: trace),
+                allocator: TraceBudgetStage(trace: trace),
                 compress: TraceCompressStage(trace: trace),
                 page: TracePageStage(trace: trace),
                 emit: TraceEmitStage(trace: trace)

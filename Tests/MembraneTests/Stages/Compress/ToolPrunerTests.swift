@@ -18,7 +18,7 @@ import Testing
             currentTurn: 4
         )
 
-        #expect(plan == ToolPlan.normalizedAllowList(["a", "c"]))
+        #expect(plan == ToolPlan.allowList(normalized:["a", "c"]))
     }
 
     @Test func doesNotPruneBeforeThreshold() {
@@ -38,7 +38,7 @@ import Testing
     @Test func jitModeBypassesPruning() {
         let pruner = ToolPruner(pruneAfterTurn: 1, keepTopK: 0)
         let tools = (0..<20).map { ToolManifest(name: "tool_\($0)", description: "Tool \($0)") }
-        let existing = ToolPlan.normalizedJIT(index: [], loadedToolNames: ["tool_2"])
+        let existing = ToolPlan.jit(normalized: [], loaded: ["tool_2"])
 
         let plan = pruner.prune(
             availableTools: tools,
@@ -65,6 +65,6 @@ import Testing
             currentTurn: 0
         )
 
-        #expect(plan == ToolPlan.normalizedAllowList(["alpha", "beta"]))
+        #expect(plan == ToolPlan.allowList(normalized:["alpha", "beta"]))
     }
 }

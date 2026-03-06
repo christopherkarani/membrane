@@ -28,7 +28,7 @@ struct MembraneBenchmarks {
             availableTools: tools,
             existingPlan: jitLoader.plan(
                 tools: tools,
-                existingPlan: ToolPlan.normalizedJIT(index: [], loadedToolNames: seededLoadedNames)
+                existingPlan: ToolPlan.jit(normalized: [], loaded: seededLoadedNames)
             ),
             usageCountByToolName: usageCountByToolName,
             currentTurn: 100
@@ -237,7 +237,7 @@ private func makeLatencySmokePipeline(timestamp: ContinuousClock.Instant) -> Mem
     MembranePipeline.openModel(
         budget: ContextBudget(totalTokens: 8_192, profile: .openModel8K),
         intake: BenchmarkIntakeStage(timestamp: timestamp),
-        budgetStage: UnifiedBudgetAllocator(),
+        allocator: UnifiedBudgetAllocator(),
         compress: CSODistiller(keepRecentTurns: 4),
         page: MemGPTPager(pressureThreshold: 0.85, keepRecentHistoryTurns: 4),
         emit: BenchmarkEmitStage()

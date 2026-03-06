@@ -1,3 +1,9 @@
 .DS_Store
 .build/
 .swiftpm/
+docs/reference/api-surface-catalog.md
+docs/reference/api-improvement-report.md
+
+docs/
+tasks/
+scripts/

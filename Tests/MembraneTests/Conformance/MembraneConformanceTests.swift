@@ -88,10 +88,10 @@ struct MembraneConformanceTests {
         let timestamp = ContinuousClock().now
         let request = makeConformanceRequest(userInput: "strict4k", timestamp: timestamp, toolCount: 32)
 
-        let pipeline = MembranePipeline.foundationModels(
+        let pipeline = MembranePipeline.foundationModel(
             budget: ContextBudget(totalTokens: 4_096, profile: .foundationModels4K),
             intake: ConformanceIntakeStage(timestamp: timestamp, modelProfile: .foundationModels4K),
-            budgetStage: UnifiedBudgetAllocator(),
+            allocator: UnifiedBudgetAllocator(),
             compress: CSODistiller(keepRecentTurns: 3),
             page: MemGPTPager(),
             emit: ConformanceEmitStage()
@@ -126,16 +126,16 @@ struct MembraneConformanceTests {
         let primary = MembranePipeline.openModel(
             budget: ContextBudget(totalTokens: 8_192, profile: .openModel8K),
             intake: ConformanceIntakeStage(timestamp: timestamp, modelProfile: .openModel8K),
-            budgetStage: UnifiedBudgetAllocator(),
+            allocator: UnifiedBudgetAllocator(),
             compress: CSODistiller(keepRecentTurns: 3),
             page: AlwaysFailingPageStage(),
             emit: ConformanceEmitStage()
         )
 
-        let fallback = MembranePipeline.foundationModels(
+        let fallback = MembranePipeline.foundationModel(
             budget: ContextBudget(totalTokens: 4_096, profile: .foundationModels4K),
             intake: ConformanceIntakeStage(timestamp: timestamp, modelProfile: .foundationModels4K),
-            budgetStage: UnifiedBudgetAllocator(),
+            allocator: UnifiedBudgetAllocator(),
             compress: CSODistiller(keepRecentTurns: 3)
         )
 
@@ -232,7 +232,7 @@ private func deterministicPipelineSignature(
     let pipeline = MembranePipeline.openModel(
         budget: ContextBudget(totalTokens: 8_192, profile: .openModel8K),
         intake: ConformanceIntakeStage(timestamp: timestamp, modelProfile: .openModel8K),
-        budgetStage: UnifiedBudgetAllocator(),
+        allocator: UnifiedBudgetAllocator(),
         compress: CSODistiller(keepRecentTurns: 4),
         page: MemGPTPager(pressureThreshold: 0.82, keepRecentHistoryTurns: 4),
         emit: ConformanceEmitStage()
@@ -344,9 +344,9 @@ private struct DeterministicCheckpointEnvelope: Codable, Equatable {
         case .allowAll:
             normalizedToolPlan = .allowAll
         case let .allowList(toolNames):
-            normalizedToolPlan = .normalizedAllowList(toolNames)
+            normalizedToolPlan = .allowList(normalized: toolNames)
         case let .jit(index, loadedToolNames):
-            normalizedToolPlan = .normalizedJIT(index: index, loadedToolNames: loadedToolNames)
+            normalizedToolPlan = .jit(normalized: index, loaded: loadedToolNames)
         }
 
         let normalizedPointers = Array(Set(pointers)).sorted { lhs, rhs in
@@ -410,12 +410,12 @@ private func makeCheckpointEnvelope() -> DeterministicCheckpointEnvelope {
 
     return DeterministicCheckpointEnvelope(
         budget: budgetSnapshot,
-        toolPlan: .normalizedJIT(
-            index: [
+        toolPlan: .jit(
+            normalized: [
                 .init(name: "search", description: "Search web"),
                 .init(name: "calc", description: "Calculator"),
             ],
-            loadedToolNames: ["calc", "search", "calc"]
+            loaded: ["calc", "search", "calc"]
         ),
         cso: cso,
         pointers: pointers,

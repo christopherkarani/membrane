@@ -3,6 +3,8 @@ import Testing
 
 @Suite struct MembraneCoreBootstrapTests {
     @Test func moduleImports() {
-        #expect(MembraneCoreMarker.moduleName == "MembraneCore")
+        // Verify core types are accessible from the module.
+        #expect(ContextSlice.self is Any.Type)
+        #expect(ContextBudget.self is Any.Type)
     }
 }

@@ -13,11 +13,11 @@ public enum ToolPlan: Sendable, Equatable, Codable {
     case allowList(toolNames: [String])
     case jit(index: [ToolIndexEntry], loadedToolNames: [String])
 
-    public static func normalizedAllowList(_ toolNames: [String]) -> ToolPlan {
+    public static func allowList(normalized toolNames: [String]) -> ToolPlan {
         .allowList(toolNames: Array(Set(toolNames)).sorted())
     }
 
-    public static func normalizedJIT(index: [ToolIndexEntry], loadedToolNames: [String]) -> ToolPlan {
+    public static func jit(normalized index: [ToolIndexEntry], loaded loadedToolNames: [String]) -> ToolPlan {
         .jit(
             index: index.sorted { lhs, rhs in
                 if lhs.name != rhs.name {

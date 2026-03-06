@@ -5,7 +5,7 @@ import Conduit
 
 @Suite struct MembraneConduitBootstrapTests {
     @Test func moduleImports() {
-        #expect(MembraneConduitMarker.moduleName == "MembraneConduit")
+        #expect(ConduitTokenAccounting.self is Any.Type)
     }
 
     @Test func closureBasedTokenAccountingCountsTextAndMessages() async throws {

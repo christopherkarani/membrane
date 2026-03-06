@@ -12,7 +12,7 @@ public struct MembraneCheckpointState: Sendable, Codable, Equatable {
     }
 
     public struct BudgetSnapshot: Sendable, Codable, Equatable {
-        public struct BucketAllocation: Sendable, Codable, Equatable {
+        public struct BucketAllocationSnapshot: Sendable, Codable, Equatable {
             public let bucketID: String
             public let allocatedTokens: Int
 
@@ -23,14 +23,14 @@ public struct MembraneCheckpointState: Sendable, Codable, Equatable {
         }
 
         public let totalTokens: Int
-        public let allocations: [BucketAllocation]
+        public let allocations: [BucketAllocationSnapshot]
         public let kvBytesPerToken: Int?
         public let kvMemoryBudgetBytes: Int?
         public let maxSequenceLength: Int?
 
         public init(
             totalTokens: Int,
-            allocations: [BucketAllocation] = [],
+            allocations: [BucketAllocationSnapshot] = [],
             kvBytesPerToken: Int? = nil,
             kvMemoryBudgetBytes: Int? = nil,
             maxSequenceLength: Int? = nil

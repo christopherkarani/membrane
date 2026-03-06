@@ -3,6 +3,6 @@ import Testing
 
 @Suite struct MembraneBootstrapTests {
     @Test func moduleImports() {
-        #expect(MembraneMarker.moduleName == "Membrane")
+        #expect(MembranePipeline.self is Any.Type)
     }
 }

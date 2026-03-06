@@ -26,6 +26,6 @@ public struct JITToolLoader: Sendable {
             ToolIndexEntry(name: tool.name, description: tool.description)
         }
 
-        return ToolPlan.normalizedJIT(index: index, loadedToolNames: loadedToolNames)
+        return ToolPlan.jit(normalized: index, loaded: loadedToolNames)
     }
 }

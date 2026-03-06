@@ -94,19 +94,19 @@ actor MockIntakeStage: IntakeStage {
     }
 
     @Test func toolPlanNormalizationIsDeterministic() {
-        let allowList = ToolPlan.normalizedAllowList(["zeta", "alpha", "alpha", "beta"])
+        let allowList = ToolPlan.allowList(normalized: ["zeta", "alpha", "alpha", "beta"])
         if case .allowList(let tools) = allowList {
             #expect(tools == ["alpha", "beta", "zeta"])
         } else {
             #expect(Bool(false))
         }
 
-        let jit = ToolPlan.normalizedJIT(
-            index: [
+        let jit = ToolPlan.jit(
+            normalized: [
                 ToolIndexEntry(name: "b", description: "B"),
                 ToolIndexEntry(name: "a", description: "A"),
             ],
-            loadedToolNames: ["z", "a", "a"]
+            loaded: ["z", "a", "a"]
         )
 
         if case .jit(let index, let loadedToolNames) = jit {

@@ -1,36 +1,41 @@
 import MembraneCore
 
+public enum PipelineMode: Sendable {
+    case full
+    case budgetOnly
+}
+
 public actor MembranePipeline {
     private let baseBudget: ContextBudget
     private let intakeStage: (any IntakeStage)?
-    private let budgetStage: (any BudgetStage)?
+    private let allocatorStage: (any BudgetStage)?
     private let compressStage: (any CompressStage)?
     private let pageStage: (any PageStage)?
     private let emitStage: (any EmitStage)?
-    private let includePageAndEmit: Bool
+    private let mode: PipelineMode
 
     public init(
         budget: ContextBudget,
         intake: (any IntakeStage)? = nil,
-        budgetStage: (any BudgetStage)? = nil,
+        allocator: (any BudgetStage)? = nil,
         compress: (any CompressStage)? = nil,
         page: (any PageStage)? = nil,
         emit: (any EmitStage)? = nil,
-        includePageAndEmit: Bool = true
+        mode: PipelineMode = .full
     ) {
         self.baseBudget = budget
         self.intakeStage = intake
-        self.budgetStage = budgetStage
+        self.allocatorStage = allocator
         self.compressStage = compress
         self.pageStage = page
         self.emitStage = emit
-        self.includePageAndEmit = includePageAndEmit
+        self.mode = mode
     }
 
-    public static func foundationModels(
+    public static func foundationModel(
         budget: ContextBudget = ContextBudget(totalTokens: 4096, profile: .foundationModels4K),
         intake: (any IntakeStage)? = nil,
-        budgetStage: (any BudgetStage)? = nil,
+        allocator: (any BudgetStage)? = nil,
         compress: (any CompressStage)? = nil,
         page: (any PageStage)? = nil,
         emit: (any EmitStage)? = nil
@@ -38,18 +43,18 @@ public actor MembranePipeline {
         MembranePipeline(
             budget: budget,
             intake: intake,
-            budgetStage: budgetStage,
+            allocator: allocator,
             compress: compress,
             page: page,
             emit: emit,
-            includePageAndEmit: false
+            mode: .budgetOnly
         )
     }
 
     public static func openModel(
         budget: ContextBudget,
         intake: (any IntakeStage)? = nil,
-        budgetStage: (any BudgetStage)? = nil,
+        allocator: (any BudgetStage)? = nil,
         compress: (any CompressStage)? = nil,
         page: (any PageStage)? = nil,
         emit: (any EmitStage)? = nil
@@ -57,11 +62,11 @@ public actor MembranePipeline {
         MembranePipeline(
             budget: budget,
             intake: intake,
-            budgetStage: budgetStage,
+            allocator: allocator,
             compress: compress,
             page: page,
             emit: emit,
-            includePageAndEmit: true
+            mode: .full
         )
     }
 
@@ -91,8 +96,8 @@ public actor MembranePipeline {
         }
 
         var budgeted = BudgetedContext(window: window, budget: budget)
-        if let budgetStage {
-            budgeted = try await budgetStage.process(budgeted.window, budget: budgeted.budget)
+        if let allocatorStage {
+            budgeted = try await allocatorStage.process(budgeted.window, budget: budgeted.budget)
         }
         budget = budgeted.budget
 
@@ -114,7 +119,7 @@ public actor MembranePipeline {
         budget = compressed.budget
 
         var paged = PagedContext(window: compressed.window, budget: compressed.budget, pagedOut: [])
-        if includePageAndEmit, let pageStage {
+        if mode == .full, let pageStage {
             paged = try await pageStage.process(
                 CompressedContext(
                     window: paged.window,
@@ -133,7 +138,7 @@ public actor MembranePipeline {
             budget: budget,
             metadata: paged.window.metadata
         )
-        if includePageAndEmit, let emitStage {
+        if mode == .full, let emitStage {
             plannedRequest = try await emitStage.process(paged, budget: budget)
         }
 
